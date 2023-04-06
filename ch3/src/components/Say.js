@@ -23,7 +23,10 @@ const Say = () => {
 };
 
 export default Say;
+<<<<<<< HEAD
 
 //부모 컴포넌트의 state를 자식 컴포넌트의 props로 전달하고,
 //자식 컴포넌트에서 특정 이벤트가 발생할 때 부모 컴포넌트의 메서드를 호출하면,
 //props도 유동적으로 사용할 수 있다
+=======
+>>>>>>> 1ada6db2deca158ece78ded91ad196a9c0867657
