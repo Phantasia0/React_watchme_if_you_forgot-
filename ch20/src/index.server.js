@@ -8,8 +8,10 @@ import fs from 'fs';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
-import rootReducer from './modules';
+import createSagaMiddleware from 'redux-saga';
+import rootReducer, { rootSaga } from './modules';
 import PreloadContext from './lib/PreloadContext';
+import { END } from 'redux-saga';
 
 const manifest = JSON.parse(
   fs.readFileSync(path.resolve('./build/asset-manifest.json'), 'utf8')
@@ -49,7 +51,13 @@ const app = express();
 
 const serverRender = async (req, res, next) => {
   const context = {};
-  const store = createStore(rootReducer, applyMiddleware(thunk));
+  const sagaMiddleware = createSagaMiddleware();
+  const store = createStore(
+    rootReducer,
+    applyMiddleware(thunk, sagaMiddleware)
+  );
+
+  const sagaPromise = sagaMiddleware.run(rootSaga).toPromise();
 
   const preloadContext = {
     done: false,
@@ -67,7 +75,10 @@ const serverRender = async (req, res, next) => {
   );
 
   ReactDOMServer.renderToStaticMarkup(jsx);
+  store.dispatch(END);
+
   try {
+    await sagaPromise;
     await Promise.all(preloadContext.promises);
   } catch (e) {
     return res.status(500);
